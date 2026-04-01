@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>愚人节特供 By'lyc</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #282c34;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; 
+        }
+
+        .prank-btn {
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            position: absolute; 
+            transition: left 0.2s ease-out, top 0.2s ease-out, transform 0.3s; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .prank-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+
+        #hint-text {
+            position: absolute;
+            top: 20px;
+            color: #ffcc00;
+            font-size: 24px;
+            font-weight: bold;
+            display: none; 
+            z-index: 100; 
+        }
+
+       
+        #fake-terminal {
+            display: none; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000; 
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace; 
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: 18px;
+            line-height: 1.6;
+            z-index: 999; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hint-text">🤫 提示：分身太多抓不住？试试按键盘上的 Tab 键锁定，然后按 Enter 键！（</div>
+    
+    <div id="fake-terminal"></div>
+
+    <button class="prank-btn" id="start-btn">点我领取红包</button>
+
+    <script>
+        const tauntTexts = ["你点不到我！", "放弃吧！", "太慢啦！", "屏幕要满了哦~", "手速不行啊", "哎呀，滑了！"];
+
+        let buttonCount = 1; 
+        const hintThreshold = 5; 
+
+        function makeButtonTricky(btn) {
+            
+            btn.addEventListener('mouseover', function() {
+                const maxX = window.innerWidth - btn.offsetWidth;
+                const maxY = window.innerHeight - btn.offsetHeight;
+                const randomX = Math.random() * maxX;
+                const randomY = Math.random() * maxY;
+
+                btn.style.left = randomX + 'px';
+                btn.style.top = randomY + 'px';
+
+                const randomText = tauntTexts[Math.floor(Math.random() * tauntTexts.length)];
+                btn.innerText = randomText;
+                
+                const r = Math.floor(Math.random() * 256);
+                const g = Math.floor(Math.random() * 256);
+                const b = Math.floor(Math.random() * 256);
+                btn.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+                const randomAngle = Math.floor(Math.random() * 360);
+                btn.style.transform = `rotate(${randomAngle}deg) scale(0.9)`; 
+
+                if (Math.random() < 0.1) {
+                    const cloneBtn = btn.cloneNode(true);
+                    
+                    cloneBtn.style.left = (window.innerWidth / 2) + 'px';
+                    cloneBtn.style.top = (window.innerHeight / 2) + 'px';
+                    cloneBtn.innerText = "我是分身！";
+
+                    document.body.appendChild(cloneBtn);
+                    makeButtonTricky(cloneBtn); 
+
+                    buttonCount++; 
+                    if (buttonCount === hintThreshold) {
+                        document.getElementById('hint-text').style.display = 'block';
+                    }
+                }
+            });
+
+            // --- hallo 居然找到这里了吗，恭喜你，发现了，可凭此截屏令作者请你喝杯奶茶，仅限前三人噢，---
+            // --- 当然了，如果你想让作者请你吃顿饭也是可以的，哈哈哈！ ---
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                
+                
+                document.body.style.backgroundColor = 'black';
+                const allBtns = document.querySelectorAll('.prank-btn');
+                allBtns.forEach(b => b.style.display = 'none');
+                document.getElementById('hint-text').style.display = 'none';
+
+                
+                const terminal = document.getElementById('fake-terminal');
+                terminal.style.display = 'block';
+
+                
+                const hackSequence = [
+                    "[!] WARNING: UNAUTHORIZED ACCESS DETECTED",
+                    "警告：检测到未授权访问",
+                    "[+] Initializing counter-measures...",
+                    "正在初始化措施...",
+                    "[+] Escalating privileges to ROOT... SUCCESS.",
+                    "权限提升到 ROOT... 成功。",
+                    "[+] Connecting to local file system...",
+                    "正在连接到本地文件系统...",
+                    "[!] EXECUTING: format C: /fs:ntfs /q /y",
+                    "正在执行：format C: /fs:ntfs /q /y",
+                    "警告：正在格式化系统盘 C:，请勿关闭电脑！",
+                    "    Erasing block 0x00A1F...",
+                    "    Erasing block 0x01B2C...",
+                    "    Erasing block 0x02C3D...",
+                    "    progress: 0% ...",
+                    "    Progress: 14% ...",
+                    "    Progress: 28% ...",
+                    "    Progress: 47% ...",
+                    "    Progress: 63% ...",
+                    "    Progress: 99% ...",
+                    "[X] CRITICAL FATAL ERROR: Prank.exe encountered an issue.",
+                    "===============================================",
+                    "哈哈，愚人节快乐！骗你的，你的电脑很安全！🎉"
+                ];
+
+               
+                for (let i = 0; i < hackSequence.length; i++) {
+                    setTimeout(() => {
+
+                        if (i === hackSequence.length - 1) {
+                            terminal.innerHTML += `<br><div style="color: #ffcc00; text-align: center; font-size: 32px; margin-top: 40px;">${hackSequence[i]}</div>`;
+                        } else {
+                            
+                            terminal.innerHTML += hackSequence[i] + '<br>';
+                        }
+                    }, i * 1800); 
+                }
+            });
+        }
+
+        const initialBtn = document.getElementById('start-btn');
+        makeButtonTricky(initialBtn);
+
+    </script>
+</body>
+</html>
