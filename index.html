@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>愚人节特供 By'lyc</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>愚人节特供 By'lyc (手机适配版)</title>
     <style>
         body {
             display: flex;
@@ -13,6 +14,11 @@
             background-color: #282c34;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden; 
+            /* 【新增】禁止用户长按选中文字，提升手机端游戏体验 */
+            user-select: none;
+            -webkit-user-select: none;
+            /* 【新增】阻止默认的触摸动作（如双击缩放、滑动等） */
+            touch-action: none; 
         }
 
         .prank-btn {
@@ -27,6 +33,8 @@
             position: absolute; 
             transition: left 0.2s ease-out, top 0.2s ease-out, transform 0.3s; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            /* 【新增】去除手机端点击按钮时产生的半透明灰色高光背景 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .prank-btn:hover {
@@ -37,13 +45,15 @@
             position: absolute;
             top: 20px;
             color: #ffcc00;
-            font-size: 24px;
+            /* 【修改】稍微缩小提示文字大小，并增加左右内边距，防止手机端文字溢出屏幕 */
+            font-size: 18px; 
+            padding: 0 15px;
+            text-align: center;
             font-weight: bold;
             display: none; 
             z-index: 100; 
         }
 
-       
         #fake-terminal {
             display: none; 
             position: fixed;
@@ -56,15 +66,18 @@
             font-family: 'Courier New', Courier, monospace; 
             padding: 20px;
             box-sizing: border-box;
-            font-size: 18px;
+            /* 【修改】缩小终端字体，适配手机屏幕宽度 */
+            font-size: 14px; 
             line-height: 1.6;
             z-index: 999; 
+            /* 【新增】允许终端内容上下滚动（如果内容过多的话） */
+            overflow-y: auto; 
         }
     </style>
 </head>
 <body>
 
-    <div id="hint-text">🤫 提示：分身太多抓不住？试试按键盘上的 Tab 键锁定，然后按 Enter 键！（</div>
+    <div id="hint-text">🤫 提示：抓不住？电脑端按 Tab+Enter，手机端试试<span style="color:white;">双指同时点击屏幕</span>！（</div>
     
     <div id="fake-terminal"></div>
 
@@ -75,10 +88,69 @@
 
         let buttonCount = 1; 
         const hintThreshold = 5; 
+        let isHacked = false; // 增加一个状态锁，防止特效被重复触发
+
+        // 【重构】将触发黑客终端的代码独立成一个函数，方便多个地方调用
+        function triggerHackEffect(event) {
+            if (event) event.preventDefault();
+            if (isHacked) return; // 如果已经触发过了，就直接返回
+            isHacked = true;
+            
+            document.body.style.backgroundColor = 'black';
+            const allBtns = document.querySelectorAll('.prank-btn');
+            allBtns.forEach(b => b.style.display = 'none'); // 隐藏所有按钮
+            document.getElementById('hint-text').style.display = 'none';
+
+            const terminal = document.getElementById('fake-terminal');
+            terminal.style.display = 'block';
+
+            const hackSequence = [
+                "[!] WARNING: UNAUTHORIZED ACCESS DETECTED",
+                "警告：检测到未授权访问",
+                "[+] Initializing counter-measures...",
+                "正在初始化措施...",
+                "[+] Escalating privileges to ROOT... SUCCESS.",
+                "权限提升到 ROOT... 成功。",
+                "[+] Connecting to local file system...",
+                "正在连接到本地文件系统...",
+                "[!] EXECUTING: format C: /fs:ntfs /q /y",
+                "正在执行：format C: /fs:ntfs /q /y",
+                "警告：正在格式化系统盘 C:，请勿关闭电脑/手机！",
+                "    Erasing block 0x00A1F...",
+                "    Erasing block 0x01B2C...",
+                "    Erasing block 0x02C3D...",
+                "    progress: 0% ...",
+                "    Progress: 14% ...",
+                "    Progress: 28% ...",
+                "    Progress: 47% ...",
+                "    Progress: 63% ...",
+                "    Progress: 99% ...",
+                "[X] CRITICAL FATAL ERROR: Prank.exe encountered an issue.",
+                "===============================================",
+                "哈哈，愚人节快乐！骗你的，你的设备很安全！🎉"
+            ];
+
+            for (let i = 0; i < hackSequence.length; i++) {
+                setTimeout(() => {
+                    if (i === hackSequence.length - 1) {
+                        // 【修改】最后一句的字号稍微改小一点，适应手机
+                        terminal.innerHTML += `<br><div style="color: #ffcc00; text-align: center; font-size: 24px; margin-top: 40px;">${hackSequence[i]}</div>`;
+                    } else {
+                        terminal.innerHTML += hackSequence[i] + '<br>';
+                    }
+                    // 每次增加文本后，自动将滚动条滚动到最底部
+                    terminal.scrollTop = terminal.scrollHeight;
+                }, i * 1200); // 稍微加快了刷屏速度，原本的 1800 有点太慢啦
+            }
+        }
 
         function makeButtonTricky(btn) {
-            
-            btn.addEventListener('mouseover', function() {
+            // 【重构】把移动和克隆的逻辑提取出来，这样鼠标和触摸事件都可以复用这段代码
+            const moveAndCloneLogic = function(event) {
+                // 如果已经触发了黑客特效，按钮就不再乱跑了
+                if (isHacked) return; 
+
+                // 获取屏幕的边界，减去按钮本身的宽高，防止按钮跑出屏幕外
                 const maxX = window.innerWidth - btn.offsetWidth;
                 const maxY = window.innerHeight - btn.offsetHeight;
                 const randomX = Math.random() * maxX;
@@ -98,82 +170,47 @@
                 const randomAngle = Math.floor(Math.random() * 360);
                 btn.style.transform = `rotate(${randomAngle}deg) scale(0.9)`; 
 
+                // 10% 的概率生成分身
                 if (Math.random() < 0.1) {
                     const cloneBtn = btn.cloneNode(true);
-                    
                     cloneBtn.style.left = (window.innerWidth / 2) + 'px';
                     cloneBtn.style.top = (window.innerHeight / 2) + 'px';
                     cloneBtn.innerText = "我是分身！";
 
                     document.body.appendChild(cloneBtn);
-                    makeButtonTricky(cloneBtn); 
+                    makeButtonTricky(cloneBtn); // 给分身也绑定同样的“逃跑”魔法
 
                     buttonCount++; 
                     if (buttonCount === hintThreshold) {
                         document.getElementById('hint-text').style.display = 'block';
                     }
                 }
-            });
+            };
 
-            // --- hallo 居然找到这里了吗，恭喜你，发现了，可凭此截屏令作者请你喝杯奶茶，仅限前三人噢，---
-            // --- 当然了，如果你想让作者请你吃顿饭也是可以的，哈哈哈！ ---
-            btn.addEventListener('click', function(event) {
-                event.preventDefault();
-                
-                
-                document.body.style.backgroundColor = 'black';
-                const allBtns = document.querySelectorAll('.prank-btn');
-                allBtns.forEach(b => b.style.display = 'none');
-                document.getElementById('hint-text').style.display = 'none';
+            // 【事件绑定 1】电脑端：鼠标移入时触发逃跑
+            btn.addEventListener('mouseover', moveAndCloneLogic);
+            
+            // 【事件绑定 2】手机端：手指刚刚触摸到按钮时触发逃跑
+            // passive: false 是为了兼容一些浏览器的严格模式，允许我们使用 preventDefault
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // 阻止触摸的默认事件（比如滚动页面）
+                moveAndCloneLogic(e);
+            }, {passive: false});
 
-                
-                const terminal = document.getElementById('fake-terminal');
-                terminal.style.display = 'block';
-
-                
-                const hackSequence = [
-                    "[!] WARNING: UNAUTHORIZED ACCESS DETECTED",
-                    "警告：检测到未授权访问",
-                    "[+] Initializing counter-measures...",
-                    "正在初始化措施...",
-                    "[+] Escalating privileges to ROOT... SUCCESS.",
-                    "权限提升到 ROOT... 成功。",
-                    "[+] Connecting to local file system...",
-                    "正在连接到本地文件系统...",
-                    "[!] EXECUTING: format C: /fs:ntfs /q /y",
-                    "正在执行：format C: /fs:ntfs /q /y",
-                    "警告：正在格式化系统盘 C:，请勿关闭电脑！",
-                    "    Erasing block 0x00A1F...",
-                    "    Erasing block 0x01B2C...",
-                    "    Erasing block 0x02C3D...",
-                    "    progress: 0% ...",
-                    "    Progress: 14% ...",
-                    "    Progress: 28% ...",
-                    "    Progress: 47% ...",
-                    "    Progress: 63% ...",
-                    "    Progress: 99% ...",
-                    "[X] CRITICAL FATAL ERROR: Prank.exe encountered an issue.",
-                    "===============================================",
-                    "哈哈，愚人节快乐！骗你的，你的电脑很安全！🎉"
-                ];
-
-               
-                for (let i = 0; i < hackSequence.length; i++) {
-                    setTimeout(() => {
-
-                        if (i === hackSequence.length - 1) {
-                            terminal.innerHTML += `<br><div style="color: #ffcc00; text-align: center; font-size: 32px; margin-top: 40px;">${hackSequence[i]}</div>`;
-                        } else {
-                            
-                            terminal.innerHTML += hackSequence[i] + '<br>';
-                        }
-                    }, i * 1800); 
-                }
-            });
+            // 【事件绑定 3】成功点击时触发特效（主要针对电脑端的 Tab+Enter）
+            btn.addEventListener('click', triggerHackEffect);
         }
 
+        // 初始化第一个按钮
         const initialBtn = document.getElementById('start-btn');
         makeButtonTricky(initialBtn);
+
+        // 【新增手机端外挂】监听全局触摸事件，如果检测到屏幕上有两个或以上的手指同时按下，直接通关！
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length >= 2) {
+                triggerHackEffect(event);
+            }
+        });
 
     </script>
 </body>
